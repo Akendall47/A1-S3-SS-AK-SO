@@ -7,27 +7,19 @@ int main(int argc, char *argv[]){
 
     ///Stores pointers to command arguments.
     ///The first element of the array is the command name.
-    // our own argv, we're creating the list
     char *args[MAX_ARGS];
 
-   ///Stores the number of arguments
+    ///Stores the number of arguments
     int argsc;
 
     while (1) {
-
         read_command_line(line);
-        
-        if(command_with_redirection(line)){///Command with redirection
-           parse_command(line, args, &argsc);
-           launch_program_with_redirection(args, argsc);
-           reap();
-       }
-       else ///Basic command
-       {
-           parse_command(line, args, &argsc);
-           launch_program(args, argsc);
-           reap();
-       }
+
+        parse_command(line, args, &argsc);
+
+        launch_program(args, argsc); 
+
+        reap();
     }
 
     return 0;

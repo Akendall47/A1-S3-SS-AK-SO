@@ -93,9 +93,7 @@ void launch_program(char *args[], int argsc)
     else if (pid == 0)  //child
     {   
         //find a programme called eg ls and run seperatley
-        execvp(args[0], args);
-        perror("execvp failed");
-        exit(1);
+        child(args, argsc);
     }
     else //parent, pause, while child exexcutes
     {
