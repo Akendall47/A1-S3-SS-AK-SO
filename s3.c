@@ -3,12 +3,35 @@
 ///Simple for now, but will be expanded in a following section
 void construct_shell_prompt(char shell_prompt[])
 {
-    strcpy(shell_prompt, "[s3]$ ");
+    char cwd[MAX_LINE];
+
+    if (getcwd(cwd, sizeof(cwd)) == NULL){
+        perror("getcwd() error");
+        exit(1);
+    }
+
+    strcpy(shell_prompt, "[");       // start with '['
+    strcat(shell_prompt, cwd);       // add current working directory
+    strcat(shell_prompt, " ");       // add a space
+    strcat(shell_prompt, "s3");     // add your custom name
+    strcat(shell_prompt, "]$ "); 
+    
+    // strcpy(shell_prompt, "[s3]$ ");
+}
+
+void init_lwd(char lwd[]){
+    char cwd[MAX_LINE];
+    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+       strcpy(lwd, cwd);
+   } else {
+       perror("getcwd() error");
+   }
 }
 
 ///Prints a shell prompt and reads input from the user
-void read_command_line(char line[])
+void read_command_line(char line[], char lwd[])
 {
+    //Note note sure why we need lwd
     char shell_prompt[MAX_PROMPT_LEN];
     construct_shell_prompt(shell_prompt);
     printf("%s", shell_prompt);
@@ -23,6 +46,26 @@ void read_command_line(char line[])
     }
     ///Remove newline (enter)
     line[strlen(line) - 1] = '\0';
+}
+
+void run_cd(char *args[], int argsc, char lwd[]){
+    if (args[1] == NULL){
+        if (chdir("/home") != 0){
+            perror("cd failed");
+        }
+    }else if (chdir(args[1]) != 0){
+        perror("cd failed");
+    }
+}
+
+int is_cd(char line[]){
+    char temp[MAX_PROMPT_LEN];
+    strcpy(temp, line);
+    char *token = strtok(temp, " "); // This modifies the original line so I've made a copy so it modifies a temp value
+    if (token != NULL && strcmp(token, "cd") == 0){
+        return 1;
+    }
+    return 0;
 }
 
 void parse_command(char line[], char *args[], int *argsc)
