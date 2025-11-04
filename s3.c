@@ -49,6 +49,19 @@ void read_command_line(char line[], char lwd[])
 }
 
 void run_cd(char *args[], int argsc, char lwd[]){
+    if (strcmp(args[1], "-") == 0){
+        if (chdir(lwd) != 0){
+            perror("cd failed");
+        }
+    }
+
+    char cwd[MAX_LINE];
+    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+       strcpy(lwd, cwd);
+   } else {
+       perror("getcwd() error");
+   }
+
     if (args[1] == NULL){
         if (chdir("/home") != 0){
             perror("cd failed");
@@ -56,6 +69,7 @@ void run_cd(char *args[], int argsc, char lwd[]){
     }else if (chdir(args[1]) != 0){
         perror("cd failed");
     }
+    
 }
 
 int is_cd(char line[]){
