@@ -104,10 +104,10 @@ void child(char *args[], int argsc)
 
     //take agrument name, and arg list
 
-    //Debug - print args to see what excvp is called with
+    /*Debug - print args to see what excvp is called with
     for (int i = 0; args[i] != NULL; ++i) {
         fprintf(stderr, "execvp will run: arg[%d] = '%s'\n", i, args[i]);
-    }
+    }*/
 
     execvp(args[0], args);
     perror("execvp failed");
@@ -146,6 +146,7 @@ void child_with_output_redirected(char *args[], int argsc, char *output_file, in
     exit(1);
 }
 
+// can code be resused here ? encapsulate error handling into own function/method? 
 
 void child_with_input_redirected(char *args[], int argsc, char *input_file) {
     int fd;
