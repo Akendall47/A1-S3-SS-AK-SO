@@ -171,9 +171,9 @@ void child(char *args[], int argsc)
     //take agrument name, and arg list
 
     //Debug - print args to see what excvp is called with
-    for (int i = 0; args[i] != NULL; ++i) {
-        fprintf(stderr, "execvp will run: arg[%d] = '%s'\n", i, args[i]);
-    }
+    // for (int i = 0; args[i] != NULL; ++i) {
+    //     fprintf(stderr, "execvp will run: arg[%d] = '%s'\n", i, args[i]);
+    // }
 
     execvp(args[0], args);
     perror("execvp failed");
