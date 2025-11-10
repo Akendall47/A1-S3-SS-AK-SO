@@ -27,12 +27,12 @@ int main(int argc, char *argv[]){
             parse_command(line, args, &argsc);
             run_cd(args, argsc, lwd); ///Implement this function
         }
-    //     else if(command_with_redirection(line)){
-    //         ///Command with redirection
-    //        parse_command(line, args, &argsc);
-    //        //launch_program_with_redirection(args, argsc);
-    //        reap();
-    //    }
+        else if(command_with_redirection(line)){
+            ///Command with redirection
+           parse_command(line, args, &argsc);
+           launch_program_with_redirection(args, argsc);
+           reap();
+       }
        else ///Basic command
        {
            parse_command(line, args, &argsc);
