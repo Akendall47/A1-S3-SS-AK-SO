@@ -41,7 +41,14 @@ void parse_command(char line[], char *args[], int *argsc);
 
 ///Child functions (add more as appropriate)
 void child(char *args[], int argsc);
+void child_with_output_redirected(char *args[], int argsc, char *output_file, int append);
+void child_with_input_redirected(char *args[], int argsc, char *input_file);
 
 ///Program launching functions (add more as appropriate)
 void launch_program(char *args[], int argsc);
+void launch_program_with_redirection(char *args[], int argsc);
+
+///Redirection detection and parsing
+int command_with_redirection(char line[]);
+int find_redirection_operator(char *args[], int argsc, char **filename, int *append);
 #endif
