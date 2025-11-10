@@ -1,7 +1,7 @@
 | Section                      | Description                                                 | Assigned To                |     Suggested Branch       | Status          |           |
 | ---------------------------- | ----------------------------------------------------------- | -------------------------  | -------------------------- | --------------  | --------- |
 | 1. Basic Commands            | Implement fork/execvp, basic command parsing                |                            | `main` (done)              | ✅              |           |
-| 2. Commands with Redirection | Support `>`, `<`, `>>` using `dup2`, `open`                 |                            | `feature/redirection`      | ⏳              |           |
+| 2. Commands with Redirection | Support `>`, `<`, `>>` using `dup2`, `open`                 |                            | `feature/redirection`      | ✅              |           |
 | 3. Support for `cd`          | Handle `cd`, `cd -`, `cd ..`, update prompt with `getcwd()` |                            | `feature/cd-support`       | ⏳              |           |
 | 4. Commands with Pipes       | Implement `                                                 |                            | `feature/pipes`            | ⏳              |           |
 | 5. Batched Commands          | Handle `;` separated commands                               |                            | `feature/batch`            | ⏳              |           |
