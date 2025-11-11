@@ -38,6 +38,7 @@ static inline void reap()
 ///Shell I/O and related functions (add more as appropriate)
 void init_lwd(char lwd[]);
 int is_cd(char line[]);
+int is_batched(char line[]);
 void run_cd(char *args[], int argsc, char lwd[]);
 void read_command_line(char line[], char lwd[]);
 void construct_shell_prompt(char shell_prompt[]);

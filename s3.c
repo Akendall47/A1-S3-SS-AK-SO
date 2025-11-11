@@ -84,10 +84,14 @@ void run_cd(char *args[], int argsc, char lwd[]){
 int is_cd(char line[]){
     char temp[MAX_PROMPT_LEN];
     strcpy(temp, line);
-    char *token = strtok(temp, " "); // This modifies the original line so I've made a copy so it modifies a temp value
+    char *token = strtok(temp, " "); 
     if (token != NULL && strcmp(token, "cd") == 0){
         return 1;
     }
+    return 0;
+}
+
+int is_batched(char line[]){
     return 0;
 }
 

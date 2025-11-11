@@ -20,25 +20,33 @@ int main(int argc, char *argv[]){
     while (1) {
 
         read_command_line(line, lwd); ///Notice the additional parameter (required for prompt construction)
-        //Note note sure why we need lwd
+        //Note not sure why we need lwd
         //read_command_line(line);
 
-        if(is_cd(line)){///Implement this function
-            parse_command(line, args, &argsc);
-            run_cd(args, argsc, lwd); ///Implement this function
+        //Have to use strtok_r because the function calls of strtok inside the functions mess up the pointers
+        char *saveptr;  
+        char *token = strtok_r(line, ";", &saveptr);
+
+        while (token != NULL) {
+            argsc = 0;
+
+            if (is_cd(token)) {
+                parse_command(token, args, &argsc);
+                run_cd(args, argsc, lwd);
+            } else if (command_with_redirection(token)) {
+                parse_command(token, args, &argsc);
+                launch_program_with_redirection(args, argsc);
+                reap();
+            } else {
+                parse_command(token, args, &argsc);
+                launch_program(args, argsc);
+                reap();
+            }
+
+            token = strtok_r(NULL, ";", &saveptr);
         }
-        else if(command_with_redirection(line)){
-            ///Command with redirection
-           parse_command(line, args, &argsc);
-           launch_program_with_redirection(args, argsc);
-           reap();
-       }
-       else ///Basic command
-       {
-           parse_command(line, args, &argsc);
-           launch_program(args, argsc);
-           reap();
-       }
+
+
     }
 
     return 0;
