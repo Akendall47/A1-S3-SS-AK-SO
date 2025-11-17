@@ -3,7 +3,6 @@
 //STD needed for forkpty, 
 //pty == psudeo terminal 
 
-#include <utmp.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <stdlib.h>
