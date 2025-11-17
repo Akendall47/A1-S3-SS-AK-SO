@@ -10,14 +10,14 @@
 | 8. Further Enhancements      | Optional: globbing, job control, command history            |                            | `enhancements`     | 💤              |           |
 
 ## Testing Progress
-A - SETUP
-B - Core commands
-C - Subshell Logic
-D -  Enhanced Logic
+A - SETUP  <br>
+B - Core commands <br>
+C - Subshell Logic <br>
+D -  Enhanced Logic <br>
 
 | Test Phase                  | Description                                                    | Notes                               | Status |
 | --------------------------- | -------------------------------------------------------------- | ----------------------------------- | ------ |
-| **A. PTY Test Harness         | Build `forkpty` based harness for automated shell interaction  | Core foundation for tests         | intial |
+| **A. PTY Test Harness         | Build `forkpty` based harness for automated shell interaction  | Core foundation for tests         | initial|
 | *B. Basic Commands Tests     | Tests for `fork/execvp`, parsing, and simple commands          | Includes `echo`, `ls`, `exit`      | ⏳     |
 | *B. Redirection Tests        | Validate `<`, `>`, `>>` and error handling                     | Append vs overwrite behavior       | ⏳     |
 | *B. `cd` Tests               | Test `cd`, `cd -`, `cd ..`, prompt updates                     | Includes error cases               | ⏳     |
