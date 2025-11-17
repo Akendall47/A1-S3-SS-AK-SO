@@ -5,5 +5,6 @@
 `s3.h` → header file (function declarations & shared definitions)  
 
 **Compile:**
+all files including .c 
 ```bash
 gcc *.c -o s3
