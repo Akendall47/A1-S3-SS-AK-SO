@@ -159,7 +159,7 @@ void run_cd(char *args[], int argsc, char lwd[]){
     char cwd[MAX_LINE];
 
     if (args[1] != NULL && strcmp(args[1], "-") == 0){
-        if (getcwd(cwd, sizeof(cwd)) == NULL) {
+        if (getcwd(cwd, sizeof(cwd)) == NULL){
             perror("getcwd() error");
         }
 
@@ -171,7 +171,7 @@ void run_cd(char *args[], int argsc, char lwd[]){
     }
 
     else {
-    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+    if (getcwd(cwd, sizeof(cwd)) != NULL){
         strcpy(lwd, cwd);
     } else {
         perror("getcwd() error");
@@ -186,7 +186,7 @@ void run_cd(char *args[], int argsc, char lwd[]){
             perror("cd failed");
         }
     }
-    else if (chdir(args[1]) != 0) {
+    else if (chdir(args[1]) != 0){
         perror("cd failed");
     }
 }
