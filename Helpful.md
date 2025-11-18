@@ -5,5 +5,6 @@
 `s3.h` → header file (function declarations & shared definitions)  
 
 **Compile:**
+should now be more specific with test script
 ```bash
-gcc *.c -o s3
+gcc s3.c s3main.c -o s3test
