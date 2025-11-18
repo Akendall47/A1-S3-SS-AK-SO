@@ -47,6 +47,7 @@ static int find_unquoted_char(const char *s, char target){
 //helps us be scalable and means parse command fucntion is way simpler for now
 //does what is says on the tin ... only if outside quotes
 // src string -> dst buffer 
+// basically rewrites commands with spaces 
 void insert_spaces_around_ops(const char *src, char *dst){
     QuoteState qs = {0, 0};
     int j = 0;
