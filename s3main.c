@@ -17,7 +17,8 @@ int main(int argc, char *argv[]){
     ///Stores the number of arguments
     int argsc;
 
-    while (1) {
+    while (1){
+        //continues added to be safe, and falling into default logic
 
         read_command_line(line, lwd); ///Notice the additional parameter (required for prompt construction)
         //Note note sure why we need lwd
@@ -25,7 +26,11 @@ int main(int argc, char *argv[]){
 
         //main rceent change has been launch -> return pid , so can call reap(pid)
 
-         
+        if (line[0] == '\0'){
+        // probably due to unterminated quote or empty input
+        continue;
+        }
+
         if (command_has_pipes(line)){
             char line_copy[MAX_LINE];
             strncpy(line_copy, line, sizeof(line_copy));
@@ -35,28 +40,28 @@ int main(int argc, char *argv[]){
             int n = 0;
 
             split_pipeline(line_copy, stages, &n);
-            if (n > 0) {
+
+            if (n > 0){
                 launch_pipeline(stages, n);
             }
+            continue;
         }
 
-        else if(is_cd(line)){///Implement this function
+        else if (is_cd(line)){
             parse_command(line, args, &argsc);
-            run_cd(args, argsc, lwd); ///Implement this function
+            run_cd(args, argsc, lwd);
+            continue;
         }
-        else if(command_with_redirection(line)){
-           //Command with redirection
-           parse_command(line, args, &argsc);
-           pid_t pid = launch_program_with_redirection(args, argsc);
-           reap(pid);
-       }
-       else ///Basic command
-       {
-           parse_command(line, args, &argsc);
-           pid_t pid = launch_program(args, argsc);
-           reap(pid);
-           
-       }
+
+
+        else{
+            parse_command(line, args, &argsc);
+            if (argsc == 0){
+                continue;
+            }
+            pid_t pid = launch_program_with_redirection(args, argsc);
+            reap(pid);
+        }
     }
 
     return 0;

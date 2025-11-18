@@ -1,8 +1,110 @@
 #include "s3.h"
 
+// QuoteState setup to handle " "
+// eg edgecases:
+// for echo " < | > "
+//and parser updated for hi>>file 
+// echo "" "" - treated as seprate lines
+//echo "hello - unterminated detection?
+// Need to do:  heredoc - currently interperted as < , <hi<<file - eg when no spaces between commands 
+
+/////// I need to make a readMe of whats going on so easier to follow than my comments 
+
+typedef struct{ //meed to track if pasrer is in '' or "" to be fully literal 
+    int in_single;
+    int in_double;
+} QuoteState;
+
+//flip the state flags if ""'' found and not in the other state
+static void update_quote_state(QuoteState *qs, char c){
+    if (c == '\'' && !qs->in_double){
+        qs->in_single = !qs->in_single;
+    }else if (c == '"' && !qs->in_single){
+        qs->in_double = !qs->in_double;
+    }
+}
+
+//to make sense when called and return 1/0 || 1/0 else 0
+static int is_quoted(const QuoteState *qs){
+    return qs->in_single || qs->in_double;
+}
+
+//loop through chars and update QS asr... 
+//locate actual operators only if they appear outside of quote
+// eg if '|' target is inside "a | c", so in_double = 1 ... so skip it.
+static int find_unquoted_char(const char *s, char target){
+    QuoteState qs = {0,0};
+
+    for (int i = 0; s[i]; i++){
+        update_quote_state(&qs, s[i]);
+        if (!is_quoted(&qs) && s[i] == target){
+            return i;   // position of real operator
+        }
+    }
+    return -1;
+}
+
+//helps us be scalable and means parse command fucntion is way simpler for now
+//does what is says on the tin ... only if outside quotes
+// src string -> dst buffer 
+void insert_spaces_around_ops(const char *src, char *dst){
+    QuoteState qs = {0, 0};
+    int j = 0;
+
+    for (int i = 0; src[i]; i++){
+        char c = src[i];
+
+        //handle quote chars
+        if (c == '"' && !qs.in_single){
+            qs.in_double = !qs.in_double;
+            dst[j++] = c;       // keep the quote
+            continue;
+        }
+        if (c == '\'' && !qs.in_double){
+            qs.in_single = !qs.in_single;
+            dst[j++] = c;
+            continue;
+        }
+
+        // if in quotes - copy everything literally 
+        if (qs.in_single || qs.in_double){
+            dst[j++] = c;
+            continue;
+        }
+
+        // handle >> outside quotes
+        if (c == '>' && src[i+1] == '>'){
+            dst[j++] = ' ';
+            dst[j++] = '>';
+            dst[j++] = '>';
+            dst[j++] = ' ';
+            i++;                // skip the second >
+            continue;
+        }
+
+        //outside quotes - single operators. 
+        if (c == '<' || c == '>' || c == '|'){
+            dst[j++] = ' ';
+            dst[j++] = c;
+            dst[j++] = ' ';
+            continue;
+        }
+
+        //normal char
+        dst[j++] = c;
+    }
+
+    dst[j] = '\0';
+
+    /** SAFETY: UNTERMINATED QUOTE HANDLING **/
+    if (qs.in_single || qs.in_double){
+        fprintf(stderr, "Error: unterminated quote.\n");
+        dst[0] = '\0';
+    }
+}
+
 ///Simple for now, but will be expanded in a following section
-void construct_shell_prompt(char shell_prompt[])
-{
+void construct_shell_prompt(char shell_prompt[]){
     char cwd[MAX_LINE];
 
     if (getcwd(cwd, sizeof(cwd)) == NULL){
@@ -29,23 +131,27 @@ void init_lwd(char lwd[]){
 }
 
 ///Prints a shell prompt and reads input from the user
-void read_command_line(char line[], char lwd[])
-{
-    //Note note sure why we need lwd
+//updated for to preproces soperators with spaces 
+void read_command_line(char line[], char lwd[]){
+    char raw[MAX_LINE];
+    char spaced[MAX_LINE * 2]; // allow extra space characters
+
     char shell_prompt[MAX_PROMPT_LEN];
     construct_shell_prompt(shell_prompt);
     printf("%s", shell_prompt);
 
-    ///See man page of fgets(...)
-    //fgets: (ptr to array that stores input chars, max chars, input stream eg keyboard)
-
-    if (fgets(line, MAX_LINE, stdin) == NULL)
-    {
+    if (fgets(raw, MAX_LINE, stdin) == NULL) {
         perror("fgets failed");
         exit(1);
     }
-    ///Remove newline (enter)
-    line[strlen(line) - 1] = '\0';
+
+    raw[strcspn(raw, "\n")] = '\0';  // remove newline
+
+    //Preprocess operators
+    insert_spaces_around_ops(raw, spaced);
+
+    // Copy into line[] for parse_command()
+    strcpy(line, spaced);
 }
 
 void run_cd(char *args[], int argsc, char lwd[]){
@@ -63,22 +169,26 @@ void run_cd(char *args[], int argsc, char lwd[]){
         }
     }
 
-    else{
-        if (getcwd(cwd, sizeof(cwd)) != NULL) {
-            strcpy(lwd, cwd);
-        } else {
-            perror("getcwd() error");
-        }
+    else {
+    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+        strcpy(lwd, cwd);
+    } else {
+        perror("getcwd() error");
+    }
 
-        if (args[1] == NULL){
-            if (chdir("/home") != 0){
-                perror("cd failed");
-            }
-        }else if (chdir(args[1]) != 0){
+    if (args[1] == NULL) {
+        // POSIX correct default directory - the other one we used was old  "/home" is old 
+        const char *home = getenv("HOME");
+        if (!home) home = "/";  // safe fallback
+
+        if (chdir(home) != 0) {
             perror("cd failed");
         }
+    }
+    else if (chdir(args[1]) != 0) {
+        perror("cd failed");
+    }
 }
-    
 }
 
 int is_cd(char line[]){
@@ -91,38 +201,57 @@ int is_cd(char line[]){
     return 0;
 }
 
-void parse_command(char line[], char *args[], int *argsc)
-{
-    ///Implements simple tokenization (space delimited)
-    ///Note: strtok puts '\0' (null) characters within the existing storage, 
-    ///to split it into logical cstrings.
-    ///There is no dynamic allocation.
-
-    ///See the man page of strtok(...)
-    // splits string into tokens using delimiter " " -stateful tokenzier
-    char *token = strtok(line, " ");
-    *argsc = 0;
-    while (token != NULL && *argsc < MAX_ARGS - 1)
+static void strip_outer_quotes(char *s){
+    size_t len = strlen(s);
+    if (len >= 2 &&
+        ((s[0] == '"'  && s[len-1] == '"') ||
+         (s[0] == '\'' && s[len-1] == '\'')))
     {
-        //store and increment ptr - one swoop - hence ++ is after 
-        args[(*argsc)++] = token;
-
-        //contiue tokenzing the same string 
-        token = strtok(NULL, " ");
+        s[len-1] = '\0';            // remove closing quote
+        memmove(s, s + 1, len - 1); // shift left to drop opening
     }
-    
-    args[*argsc] = NULL; ///args must be null terminated
 }
 
-/// Check: for redirection operators >
-//strstr: search for substring in a string
-int command_with_redirection(char line[]){
-    if (strstr(line, ">>") != NULL || 
-        strstr(line, ">") != NULL || 
-        strstr(line, "<") != NULL){
-        return 1;
+/// Raw input -> insert_spaces_around_ops() -> parse_command()
+void parse_command(char line[], char *args[], int *argsc){
+    QuoteState qs = (QuoteState){0, 0};
+    *argsc = 0;
+    char *p = line;
+    char *start = NULL;
+
+    while (*p) {
+        // skip any leading spaces if we are not currently inside a token
+        if (!start) {
+            while (*p == ' '){
+                p++;
+            }
+            if (*p == '\0'){
+                break;
+            }
+            start = p;  // beginning of an argument
+        }
+
+        update_quote_state(&qs, *p);
+
+        // end of argument if: not quoted and we hit a space
+        if (!is_quoted(&qs) && *p == ' '){
+            *p = '\0';               // terminate token
+            strip_outer_quotes(start);
+            args[*argsc] = start;
+            (*argsc)++;
+            start = NULL;            // reset for next token
+        }
+        p++;
     }
-    return 0;
+
+    // Final token (if any)
+    if (start){
+        strip_outer_quotes(start);
+        args[*argsc] = start;
+        (*argsc)++;
+    }
+
+    args[*argsc] = NULL; //needed for execvp
 }
 
 // return: >, >> == 1 ; input: < == 2 ; None: == 0 
@@ -236,11 +365,10 @@ void child_with_input_redirected(char *args[], int argsc, char *input_file){
     exit(1);
 }
 
-//obviously using strchr to  find | pipe
+//updated to find unquoted
 int command_has_pipes(char line[]){
-    return strchr(line, '|') != NULL;
+    return find_unquoted_char(line, '|') != -1;
 }
-
 
 static char *trim(char *s){
 //////// an efificiency thing - as parse a lot of text
@@ -262,10 +390,21 @@ static char *trim(char *s){
 //strtok split at every | ---> store in stages 
 int split_pipeline(char *line, char *stages[], int *count){
     *count = 0;
-    char *p = strtok(line, "|");
-    while (p && *count < MAX_ARGS) {
-        stages[(*count)++] = trim(p);
-        p = strtok(NULL, "|");
+    QuoteState qs = {0,0};
+    char *start = line;
+
+    for (char *p = line; ; p++) {
+        char c = *p;
+        update_quote_state(&qs, c);
+
+        if (c == '\0' || (!is_quoted(&qs) && c == '|')){
+            *p = '\0';
+            stages[*count] = trim(start);
+            (*count)++;
+
+            if (c == '\0') break;
+            start = p + 1;
+        }
     }
     return *count > 0;
 }
@@ -273,8 +412,7 @@ int split_pipeline(char *line, char *stages[], int *count){
 ///
 // Launches return PID so main can Reap - more control/flexible - and readable
 ///
-pid_t launch_pipeline(char *stages[], int n)
- {
+pid_t launch_pipeline(char *stages[], int n){
     int in_fd = -1;     // read end of previous pipe
     int pfd[2];         // pipe for current stage
     pid_t pids[MAX_ARGS];
@@ -377,8 +515,7 @@ pid_t launch_pipeline(char *stages[], int n)
     return last;
 } 
 
-pid_t launch_program(char *args[], int argsc)
-{
+pid_t launch_program(char *args[], int argsc){
     ///Implement this function:
 
     ///fork() a child process.
@@ -413,7 +550,7 @@ pid_t launch_program(char *args[], int argsc)
     return pid;
 }
 
-pid_t launch_program_with_redirection(char *args[], int argsc) {
+pid_t launch_program_with_redirection(char *args[], int argsc){
      ///Handle exit before fork
      if (argsc > 0 && strcmp(args[0], "exit") == 0) {
          printf("Exiting shell.\n");

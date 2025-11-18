@@ -57,7 +57,6 @@ pid_t launch_program_with_redirection(char *args[], int argsc);
 pid_t launch_pipeline(char *stages[], int n);
 
 ///Redirection detection and parsing
-int command_with_redirection(char line[]);
 int find_redirection_operator(char *args[], int argsc, char **filename, int *append);
 
 // Pipe Specific
