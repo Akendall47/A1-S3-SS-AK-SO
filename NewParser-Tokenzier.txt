@@ -1,0 +1,2 @@
+parser needs to be updated handle special charcters better
+especially to handle echo 
