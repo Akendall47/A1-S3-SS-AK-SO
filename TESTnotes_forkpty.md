@@ -9,7 +9,7 @@ returns the PTY master fd to the parent
 
 #### Run the Test
 ```bash
-gcc test_shell.c -o test_shell
+gcc test_shell.c -o test_shell 
 gcc s3.c s3main.c -o s3test
 ./test_shell
 ```
