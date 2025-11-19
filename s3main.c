@@ -2,6 +2,10 @@
 
 int main(int argc, char *argv[]){
 
+    fprintf(stderr, "[TRACE] Shell starting...\n");
+    fflush(stderr);
+
+
     ///Stores the command line input
     char line[MAX_LINE];
 
@@ -25,6 +29,8 @@ int main(int argc, char *argv[]){
         //read_command_line(line);
 
         //main rceent change has been launch -> return pid , so can call reap(pid)
+        // continue; used to prevent accidnetal fall through and can reorder easier. 
+        //avoids deep nesting
 
         if (line[0] == '\0'){
         // probably due to unterminated quote or empty input
