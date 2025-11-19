@@ -96,7 +96,7 @@ void insert_spaces_around_ops(const char *src, char *dst){
 
     dst[j] = '\0';
 
-    /** SAFETY: UNTERMINATED QUOTE HANDLING **/
+    //unterminated quote handling
     if (qs.in_single || qs.in_double){
         fprintf(stderr, "Error: unterminated quote.\n");
         dst[0] = '\0';
