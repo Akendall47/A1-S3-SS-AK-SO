@@ -30,9 +30,12 @@ enum ArgIndex
 ///with the actual function code;
 ///inline improves speed and readability; meant for short functions (a few lines).
 ///the static here avoids linker errors from multiple definitions (needed with inline).
-static inline void reap()
+// archie - updated to waitpid to have mroe control - and make more scalable if needed 
+static inline void reap(pid_t pid)
 {
-    wait(NULL);
+    if (pid > 0){
+        waitpid(pid, NULL, 0);
+    }
 }
 
 ///Shell I/O and related functions (add more as appropriate)
@@ -49,10 +52,15 @@ void child_with_output_redirected(char *args[], int argsc, char *output_file, in
 void child_with_input_redirected(char *args[], int argsc, char *input_file);
 
 ///Program launching functions (add more as appropriate)
-void launch_program(char *args[], int argsc);
-void launch_program_with_redirection(char *args[], int argsc);
+pid_t launch_program(char *args[], int argsc);
+pid_t launch_program_with_redirection(char *args[], int argsc);
+pid_t launch_pipeline(char *stages[], int n);
 
 ///Redirection detection and parsing
-int command_with_redirection(char line[]);
 int find_redirection_operator(char *args[], int argsc, char **filename, int *append);
+
+// Pipe Specific
+int command_has_pipes(char line[]);
+int split_pipeline(char *line, char *stages[], int *count);
+
 #endif
