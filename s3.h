@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <ctype.h> // For whitespace removal
 
 
 ///Constants for array sizes, defined for clarity and code readability
@@ -45,6 +46,10 @@ void run_cd(char *args[], int argsc, char lwd[]);
 void read_command_line(char line[], char lwd[]);
 void construct_shell_prompt(char shell_prompt[]);
 void parse_command(char line[], char *args[], int *argsc);
+int is_subshell(char line[]);
+void process_input(char line[], char *lwd);
+void run_subshell(char line[], char *lwd);
+void trim_whitespace(char line[]);
 
 ///Child functions (add more as appropriate)
 void child(char *args[], int argsc);
@@ -52,7 +57,7 @@ void child_with_output_redirected(char *args[], int argsc, char *output_file, in
 void child_with_input_redirected(char *args[], int argsc, char *input_file);
 
 ///Program launching functions (add more as appropriate)
-pid_t launch_program(char *args[], int argsc);
+void launch_program(char *args[], int argsc);
 pid_t launch_program_with_redirection(char *args[], int argsc);
 pid_t launch_pipeline(char *stages[], int n);
 

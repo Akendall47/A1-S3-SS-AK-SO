@@ -1,7 +1,6 @@
 .:
-Helpful.md
+B_New_Parser.md
 README.md
-RedirectNotes.md
 s3
 s3.c
 s3.h
