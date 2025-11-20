@@ -31,7 +31,7 @@ void init_lwd(char lwd[]){
 ///Prints a shell prompt and reads input from the user
 void read_command_line(char line[], char lwd[])
 {
-    //Note note sure why we need lwd
+    //Note not sure why we need lwd
     char shell_prompt[MAX_PROMPT_LEN];
     construct_shell_prompt(shell_prompt);
     printf("%s", shell_prompt);
@@ -91,8 +91,87 @@ int is_cd(char line[]){
     return 0;
 }
 
-int is_batched(char line[]){
+int is_subshell(char line[]){
+    size_t len = strlen(line);
+    if (line[0] == '(' && line[len - 1] == ')'){
+        return 1;
+    }
     return 0;
+}
+
+
+void run_subshell(char *token, char *lwd) {
+    pid_t pid = fork();
+
+    if (pid < 0) {
+        perror("fork failed");
+        exit(1);
+    } 
+    else if (pid == 0) { 
+
+        token = token + 1; // if subshell command, first character is '(' therefore move one character further
+
+        size_t len = strlen(token); // Find length and remove ')' from last character and make sure to add null terminator
+        if (len > 0 && token[len - 1] == ')') {
+            token[len - 1] = '\0';
+        }
+        process_input(token, lwd); // Child shell calls process function and dies when it finishes
+        exit(0); 
+    } 
+    else {
+        int status;
+        waitpid(pid, &status, 0);
+    }
+}
+
+
+void process_input(char line[], char *lwd) {
+    char *args[MAX_ARGS];
+    int argsc;
+    
+    char *start = line;
+    int len = strlen(line);
+    int parenthesis_count = 0;
+
+    // Looping through every character looking for parenthesis and semi-colons
+    for (int i = 0; i <= len; i++) {
+        if (line[i] == '(') {
+            parenthesis_count++;
+        }
+        else if (line[i] == ')') {
+            parenthesis_count--;
+        }
+
+        // Splitting tokens depending if it's ; or end of the line
+        if ((line[i] == ';' && parenthesis_count == 0) || line[i] == '\0') {
+            line[i] = '\0'; // We replace the ; with the endline symbol
+
+            char *token = start;
+            trim_whitespace(token);
+
+            if (strlen(token) > 0) {
+                argsc = 0;
+
+                if (is_subshell(token)) {
+                    run_subshell(token, lwd);
+                }
+                else if (is_cd(token)) {
+                    parse_command(token, args, &argsc);
+                    run_cd(args, argsc, lwd);
+                } 
+                else if (command_with_redirection(token)) {
+                    parse_command(token, args, &argsc);
+                    launch_program_with_redirection(args, argsc);
+                } 
+                else {
+                    parse_command(token, args, &argsc);
+                    launch_program(args, argsc);
+                }
+            }
+
+            start = &line[i+1]; // Put start of next token after the end of the previous token
+        }
+    }
 }
 
 void parse_command(char line[], char *args[], int *argsc)
@@ -183,6 +262,7 @@ void child(char *args[], int argsc)
     perror("execvp failed");
     exit(1);
 }
+
 
 void child_with_output_redirected(char *args[], int argsc, char *output_file, int append){
     int fd;
@@ -315,4 +395,29 @@ void launch_program_with_redirection(char *args[], int argsc) {
         int status;
         waitpid(pid, &status, 0);
     }
+}
+
+
+void trim_whitespace(char line[]) {
+    char *start = line;
+    char *end;
+
+    // Skip leading whitespace
+    while (*start && isspace((unsigned char)*start))
+        start++;
+
+    if (*start == '\0') {
+        line[0] = '\0';
+        return;
+    }
+
+    end = start + strlen(start) - 1;
+
+    while (end > start && isspace((unsigned char)*end))
+        end--;
+
+    *(end + 1) = '\0';
+
+    if (start != line)
+        memmove(line, start, (end - start) + 2); // +1 char +1 '\0'
 }

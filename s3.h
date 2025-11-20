@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <ctype.h> // For whitespace removal
 
 
 ///Constants for array sizes, defined for clarity and code readability
@@ -38,7 +39,10 @@ static inline void reap()
 ///Shell I/O and related functions (add more as appropriate)
 void init_lwd(char lwd[]);
 int is_cd(char line[]);
-int is_batched(char line[]);
+int is_subshell(char line[]);
+void process_input(char line[], char *lwd);
+void run_subshell(char line[], char *lwd);
+void trim_whitespace(char line[]);
 void run_cd(char *args[], int argsc, char lwd[]);
 void read_command_line(char line[], char lwd[]);
 void construct_shell_prompt(char shell_prompt[]);
@@ -48,6 +52,7 @@ void parse_command(char line[], char *args[], int *argsc);
 void child(char *args[], int argsc);
 void child_with_output_redirected(char *args[], int argsc, char *output_file, int append);
 void child_with_input_redirected(char *args[], int argsc, char *input_file);
+void child_subshell(char *args[], int argsc);
 
 ///Program launching functions (add more as appropriate)
 void launch_program(char *args[], int argsc);
