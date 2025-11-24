@@ -49,7 +49,7 @@ struct Lexer{
 
 Lexer* lexer_create(const char *input){
     Lexer *lex = malloc(sizeof(Lexer));
-    if (!lex) return NULL;
+    if (!lex) return NULL;  //dont deref a null pointer !
     
     lex->input = input;
     lex->current = input;
@@ -89,4 +89,29 @@ static void buf_append(Lexer *lex, char c){
 
 static char buf_peek_last(Lexer *lex){
     return (lex->buf_pos > 0) ? lex->token_buf[lex->buf_pos - 1] : '\0';
+}
+
+// helpers for charcters 
+
+static char peek(Lexer *lex){
+    return *lex->current;
+}
+
+static char peek_next(Lexer *lex){
+    return lex->current[1];
+}
+
+//move as long as not at end 
+static void advance(Lexer *lex){
+    if (*lex->current != '\0'){
+        lex->current++;
+    }
+}
+
+static int is_operator_char(char c){
+    return c == '|' || c == '<' || c == '>' || c == ';' || c == '(' || c == ')';
+}
+
+static int is_word_char(char c){
+    return c != '\0' && !isspace(c) && !is_operator_char(c) && c != '\'' && c != '"';
 }
