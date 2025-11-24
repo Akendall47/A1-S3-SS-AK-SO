@@ -30,5 +30,14 @@ Lexer* lexer_create(const char *input);
 
 void lexer_destroy(Lexer *lex);
 
+//return token -- caller must free token.value
+Token lexer_next_token(Lexer *lex);
 
-#endif 
+int lexer_tokenize_all(const char *input, Token **tokens_out, int *count_out);
+
+void lexer_free_tokens(Token *tokens, int count);
+
+//get an udnerstandbale name for token type
+const char* token_type_name(TokenType type);
+
+#endif

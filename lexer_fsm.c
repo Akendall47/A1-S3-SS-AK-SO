@@ -137,3 +137,244 @@ static Token make_simple_token(Lexer *lex, TokenType type, const char *value){
     buf_append(lex, *value);
     return make_token(lex, type);
 }
+
+
+/// main FSM LOGIC
+
+Token lexer_next_token(Lexer *lex){
+    buf_reset(lex);
+    
+    while (1){
+        char c = peek(lex);
+
+        switch (lex->state){
+        case STATE_START:
+            if (isspace(c)){
+                advance(lex);
+                continue;
+            }
+            if (c == '\0'){
+                return make_token(lex, TOKEN_EOF);
+            }
+            if (c == '|'){
+                advance(lex);
+                return make_simple_token(lex, TOKEN_PIPE, "|");
+            }
+            if (c == ';'){
+                advance(lex);
+                return make_simple_token(lex, TOKEN_SEMICOLON, ";");
+            }
+            if (c == '('){
+                advance(lex);
+                return make_simple_token(lex, TOKEN_LPAREN, "(");
+            }
+            if (c == ')'){
+                advance(lex);
+                return make_simple_token(lex, TOKEN_RPAREN, ")");
+            }
+            
+            if (c == '<'){
+                advance(lex);
+                lex->state = STATE_AFTER_LESS;
+                buf_append(lex, c);
+                continue;
+            }
+            if (c == '>'){
+                advance(lex);
+                lex->state = STATE_AFTER_GREATER;
+                buf_append(lex, c);
+                continue;
+            }
+            
+            if (c == '\''){
+                advance(lex);
+                lex->state = STATE_IN_SQUOTE;
+                continue;
+            }
+            if (c == '"'){
+                advance(lex);
+                lex->state = STATE_IN_DQUOTE;
+                continue;
+            }
+            
+            if (c == '\\'){
+                advance(lex);
+                lex->state = STATE_ESCAPE_NORMAL;
+                continue;
+            }
+            
+            if (is_word_char(c)){
+                buf_append(lex, c);
+                advance(lex);
+                lex->state = STATE_IN_WORD;
+                continue;
+            }
+            
+            advance(lex);
+            return make_error_token("Unexpected character");
+            
+        case STATE_IN_WORD:
+            if (is_word_char(c)){
+                buf_append(lex, c);
+                advance(lex);
+                continue;
+            }
+            if (c == '\\'){
+                advance(lex);
+                lex->state = STATE_ESCAPE_NORMAL;
+                continue;
+            }
+            if (c == '"'){
+                advance(lex);
+                lex->state = STATE_IN_DQUOTE;
+                continue;
+            }
+            if (c == '\''){
+                advance(lex);
+                lex->state = STATE_IN_SQUOTE;
+                continue;
+            }
+            lex->state = STATE_START;
+            return make_token(lex, TOKEN_WORD);
+            
+        case STATE_IN_SQUOTE:
+            if (c == '\0'){
+                return make_error_token("Unterminated single quote");
+            }
+            if (c == '\''){
+                advance(lex);
+                if (is_word_char(peek(lex)) || peek(lex) == '"' || peek(lex) == '\''){
+                    lex->state = STATE_IN_WORD;
+                } else {
+                    lex->state = STATE_START;
+                    return make_token(lex, TOKEN_WORD);
+                }
+                continue;
+            }
+            buf_append(lex, c);
+            advance(lex);
+            continue;
+            
+        case STATE_IN_DQUOTE:
+            if (c == '\0'){
+                return make_error_token("Unterminated double quote");
+            }
+            if (c == '"'){
+                advance(lex);
+                if (is_word_char(peek(lex)) || peek(lex) == '\'' || peek(lex) == '"'){
+                    lex->state = STATE_IN_WORD;
+                } else {
+                    lex->state = STATE_START;
+                    return make_token(lex, TOKEN_WORD);
+                }
+                continue;
+            }
+            if (c == '\\'){
+                advance(lex);
+                lex->state = STATE_ESCAPE_DQUOTE;
+                continue;
+            }
+            buf_append(lex, c);
+            advance(lex);
+            continue;
+            
+        case STATE_AFTER_LESS:
+            lex->state = STATE_START;
+            return make_token(lex, TOKEN_REDIR_IN);
+            
+        case STATE_AFTER_GREATER:
+            if (c == '>'){
+                buf_append(lex, c);
+                advance(lex);
+                lex->state = STATE_START;
+                return make_token(lex, TOKEN_REDIR_APP);
+            }
+            lex->state = STATE_START;
+            return make_token(lex, TOKEN_REDIR_OUT);
+            
+        case STATE_ESCAPE_NORMAL:
+            if (c == '\0'){
+                return make_error_token("Backslash at end of input");
+            }
+            buf_append(lex, c);
+            advance(lex);
+            lex->state = STATE_IN_WORD;
+            continue;
+            
+        case STATE_ESCAPE_DQUOTE:
+            if (c == '\0'){
+                return make_error_token("Backslash at end of input");
+            }
+            if (c == '"' || c == '\\' || c == '$' || c == '`' || c == '\n'){
+                buf_append(lex, c);
+            } else {
+                buf_append(lex, '\\');
+                buf_append(lex, c);
+            }
+            advance(lex);
+            lex->state = STATE_IN_DQUOTE;
+            continue;
+        }
+    }
+}
+
+int lexer_tokenize_all(const char *input, Token **tokens_out, int *count_out){
+    Lexer *lex = lexer_create(input);
+    if (!lex) return -1;
+    
+    int capacity = 32;
+    int count = 0;
+    Token *tokens = malloc(sizeof(Token) * capacity);
+    if (!tokens){
+        lexer_destroy(lex);
+        return -1;
+    }
+    
+    while (1){
+        Token tok = lexer_next_token(lex);
+        
+        if (tok.type == TOKEN_ERROR){
+            fprintf(stderr, "Lexer error: %s\n", tok.value);
+            free(tok.value);
+            for (int i = 0; i < count; i++){
+                free(tokens[i].value);
+            }
+            free(tokens);
+            lexer_destroy(lex);
+            return -1;
+        }
+        
+        if (count >= capacity){
+            capacity *= 2;
+            Token *new_tokens = realloc(tokens, sizeof(Token) * capacity);
+            if (!new_tokens) {
+                for (int i = 0; i < count; i++){
+                    free(tokens[i].value);
+                }
+                free(tokens);
+                free(tok.value);
+                lexer_destroy(lex);
+                return -1;
+            }
+            tokens = new_tokens;
+        }
+        
+        tokens[count++] = tok;
+        
+        if (tok.type == TOKEN_EOF){
+            break;
+        }
+    }
+    
+    lexer_destroy(lex);
+    *tokens_out = tokens;
+    *count_out = count;
+    return 0;
+}
+
+void lexer_free_tokens(Token *tokens, int count){
+    for (int i = 0; i < count; i++) {
+        free(tokens[i].value);
+    }
+    free(tokens);
+}
