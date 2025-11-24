@@ -72,3 +72,21 @@ void lexer_destroy(Lexer *lex){
         free(lex);
     }
 }
+
+// buff stuff - utilities - internal
+
+static void buf_reset(Lexer *lex){
+    lex->buf_pos = 0;
+    lex->token_buf[0] = '\0';
+}
+
+static void buf_append(Lexer *lex, char c){
+    if (lex->buf_pos < lex->buf_size - 1){
+        lex->token_buf[lex->buf_pos++] = c;
+        lex->token_buf[lex->buf_pos] = '\0';
+    }
+}
+
+static char buf_peek_last(Lexer *lex){
+    return (lex->buf_pos > 0) ? lex->token_buf[lex->buf_pos - 1] : '\0';
+}
