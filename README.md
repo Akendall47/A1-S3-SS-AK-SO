@@ -4,10 +4,11 @@
 | 2. Commands with Redirection | Support `>`, `<`, `>>` using `dup2`, `open`                 |                            | `redirection`      | ✅              |           |
 | 3. Support for `cd`          | Handle `cd`, `cd -`, `cd ..`, update prompt with `getcwd()` |                            | `cd-support`       | ✅              |           |
 | 4. Commands with Pipes       | Implement `                                                 |                            | `pipes`            | ✅              |           |
-| 5. Batched Commands          | Handle `;` separated commands                               |                            | `batch`            | ⏳              |           |
-| 6. PE 1: Subshells           | Implement `( ... )` grouped commands as subshells           |                            | `subshells`        | ⏳              |           |
-| 7. PE 2: Nested Subshells    | Extend subshell support for nested parentheses              |                            | `nested-subshells` | ⏳              |           |
-| 8. Further Enhancements      | Optional: globbing, job control, command history            |                            | `enhancements`     | 💤              |           |
+| 5. Batched Commands          | Handle `;` separated commands                               |                            | `batch`            | ✅              |           |
+| 6. PE 1: Subshells           | Implement `( ... )` grouped commands as subshells           |                            | `subshells`        | ✅              |           |
+| 7. PE 2: Nested Subshells    | Extend subshell support for nested parentheses              |                            | `nested-subshells` | ✅              |           |
+| 8. Custom Lexer FSM          | Optional: globbing, job control, command history            |                            | `enhancements`     | ...              |           |
+| 9. job Control               | Optional: globbing, job control, command history            |                            | `enhancements`     | ...              |           |
 
 ## Testing Progress
 A - SETUP  <br>
