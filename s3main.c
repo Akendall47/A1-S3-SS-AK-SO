@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
 
     while (1) {
         read_command_line(line, lwd);
-        process_input(line, lwd); // Calls the function we created above
+        process_input(line, lwd); // merged our prevoious commands so can call recursivley for subshells
     }
     return 0;
 }

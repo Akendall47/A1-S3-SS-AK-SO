@@ -1,7 +1,8 @@
 #ifndef _S3_H_
 #define _S3_H_
 
-///See reference for what these libraries provide
+#include "lexer_fsm.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,6 +12,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <ctype.h> // For whitespace removal
+
 
 
 ///Constants for array sizes, defined for clarity and code readability
@@ -31,7 +33,7 @@ enum ArgIndex
 ///with the actual function code;
 ///inline improves speed and readability; meant for short functions (a few lines).
 ///the static here avoids linker errors from multiple definitions (needed with inline).
-// archie - updated to waitpid to have mroe control - and make more scalable if needed 
+// archie - updated to waitpid to have more control - and make more scalable if needed 
 static inline void reap(pid_t pid)
 {
     if (pid > 0){
@@ -58,10 +60,11 @@ void child_with_input_redirected(char *args[], int argsc, char *input_file);
 
 ///Program launching functions (add more as appropriate)
 void launch_program(char *args[], int argsc);
-pid_t launch_program_with_redirection(char *args[], int argsc);
+pid_t launch_program_with_redirection(char *args[], int argsc, const char *original_line);
 pid_t launch_pipeline(char *stages[], int n);
 
 ///Redirection detection and parsing
+int find_redirection_in_line(const char *line, char **filename, int *append);
 int find_redirection_operator(char *args[], int argsc, char **filename, int *append);
 
 // Pipe Specific
