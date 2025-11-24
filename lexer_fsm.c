@@ -47,3 +47,28 @@ struct Lexer{
     LexerState state;
 };
 
+Lexer* lexer_create(const char *input){
+    Lexer *lex = malloc(sizeof(Lexer));
+    if (!lex) return NULL;
+    
+    lex->input = input;
+    lex->current = input;
+    lex->buf_size = MAX_LINE;
+    lex->token_buf = malloc(lex->buf_size);
+    if (!lex->token_buf){
+        free(lex);
+        return NULL;
+    }
+    
+    lex->buf_pos = 0;
+    lex->state = STATE_START;
+    
+    return lex;
+}
+
+void lexer_destroy(Lexer *lex){
+    if (lex) {
+        free(lex->token_buf);
+        free(lex);
+    }
+}

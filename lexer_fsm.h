@@ -25,5 +25,10 @@ typedef struct{
 // lexer can only be accessed with our functions 
 typedef struct Lexer Lexer;
 
+//returns Lexer pointer, or NULL on allocation failure
+Lexer* lexer_create(const char *input);
+
+void lexer_destroy(Lexer *lex);
+
 
 #endif 
