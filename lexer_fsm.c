@@ -115,3 +115,25 @@ static int is_operator_char(char c){
 static int is_word_char(char c){
     return c != '\0' && !isspace(c) && !is_operator_char(c) && c != '\'' && c != '"';
 }
+
+
+//Token Makers 
+static Token make_token(Lexer *lex, TokenType type){
+    Token tok;
+    tok.type = type;
+    tok.value = strdup(lex->token_buf);
+    return tok;
+}
+
+static Token make_error_token(const char *message){
+    Token tok;
+    tok.type = TOKEN_ERROR;
+    tok.value = strdup(message);
+    return tok;
+}
+
+static Token make_simple_token(Lexer *lex, TokenType type, const char *value){
+    buf_reset(lex);
+    buf_append(lex, *value);
+    return make_token(lex, type);
+}
