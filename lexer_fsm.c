@@ -1,11 +1,3 @@
-// deciding to go with a cleaner approach to our input processing logic from before
-// which was creating uncessary/ duplciated functions whne there is an obvious simpler solution
-// ie an FSM
-// will likely use a buffer
-//token has type and a value - so split input into tokens that can be dealt with by our shell logic
-// then state can change based on current charcter ..stay, switch or restart , state
-//so our shell can parse command easier 
-
 #include "s3.h"
 #include "lexer_fsm.h"
 #include <ctype.h>
