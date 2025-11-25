@@ -101,7 +101,7 @@ static void advance(Lexer *lex){
 }
 
 static int is_operator_char(char c){
-    return c == '|' || c == '<' || c == '>' || c == ';' || c == '(' || c == ')';
+    return c == '|' || c == '<' || c == '>' || c == ';' || c == '(' || c == ')' || c == '&';
 }
 
 static int is_word_char(char c){
@@ -152,6 +152,13 @@ Token lexer_next_token(Lexer *lex){
                 advance(lex);
                 return make_simple_token(lex, TOKEN_PIPE, "|");
             }
+
+            //for our job control
+            if (c == '&'){
+                advance(lex);
+                return make_simple_token(lex, TOKEN_AMPERSAND, "&");
+            }
+            
             if (c == ';'){
                 advance(lex);
                 return make_simple_token(lex, TOKEN_SEMICOLON, ";");
