@@ -60,3 +60,31 @@ void print_jobs(){
      }
 }
 
+void wait_for_job(pid_t pgid, const char *cmd){
+    int status;
+    waitpid(-pgid, &status, WUNTRACED);
+
+    if (WIFSTOPPED(status)){
+        // job stopped
+        //check if it's already in table
+        int job_id = -1;
+        for (int i = 0; i < MAX_JOBS; i++){
+            if (job_table[i].id != 0 && job_table[i].pgid == pgid) {
+                job_table[i].state = JOB_STOPPED;
+                job_id  = job_table[i].id;
+                break;
+            }
+        }
+
+        //if it not in table it was fg job  , can add now
+        if (job_id == -1){
+            job_id =  add_job(pgid, JOB_STOPPED, cmd);
+        }
+
+        printf("\n[%d] stopped\t%s\n", job_id, cmd);
+    } 
+    else if(WIFEXITED(status) || WIFSIGNALED(status)){
+        remove_job_by_pgid(pgid);
+    }
+}
+
