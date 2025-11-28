@@ -88,3 +88,24 @@ void wait_for_job(pid_t pgid, const char *cmd){
     }
 }
 
+void put_job_in_foreground(Job *j, int continue_job){
+    tcsetpgrp(STDIN_FILENO, j->pgid);
+
+    if (continue_job){
+        if (kill(-j->pgid, SIGCONT) < 0) perror("kill (SIGCONT)");
+    }
+
+    // Pass existing command name back to wait
+    wait_for_job(j->pgid, j->cmd);
+
+    tcsetpgrp(STDIN_FILENO, getpgrp());
+}
+
+void put_job_in_background(Job *j, int continue_job){
+    if (continue_job) {
+        if (kill(-j->pgid, SIGCONT) < 0) perror("kill (SIGCONT)");
+    }
+    j->state = JOB_RUNNING;
+    printf("[%d] %s &\n", j->id, j->cmd);
+}
+
