@@ -11,6 +11,7 @@ Job control is the ability to selectively stop (suspend) the execution of proces
 * **Process Group:** A collection of related processes (e.g., a pipeline `ls | grep`). Signals sent to the group affect all processes in that pipeline.
 
 ---
+# Add example, ... sleep 1000 & , fg 1, ctrl+Z , bg 1 ... multiple ... screenshots of jobs list ... 
 
 ## 2. Command & Syntax Reference
 
@@ -24,6 +25,7 @@ The following commands and operators are now supported in our `s3`:
 | **`jobs`** | **List Jobs/ Job Table.** Displays the status of all active jobs tracked by our shell (Running or Stopped) along with their Job ID. | `jobs` |
 | **`fg <job_id>`** | **Foreground.** Brings a background or stopped job to the foreground. The shell waits for this job to finish (or stop again) before returning the prompt. | `fg 1` |
 | **`bg <job_id>`** | **Background.** Resumes a *stopped* job execution in the background. Useful if you started a command without `&` but want to free up our terminal. | `bg 1` |
+| **`exit`** | **exits shell** `Ctrl+C` - has different functionality now | `exit` |
 
 ---
 

@@ -81,7 +81,7 @@ void wait_for_job(pid_t pgid, const char *cmd){
             job_id =  add_job(pgid, JOB_STOPPED, cmd);
         }
 
-        printf("\n[%d] stopped\t%s\n", job_id, cmd);
+        printf("\n[%d] STOPPED\t%s\n", job_id, cmd);
     } 
     else if(WIFEXITED(status) || WIFSIGNALED(status)){
         remove_job_by_pgid(pgid);
