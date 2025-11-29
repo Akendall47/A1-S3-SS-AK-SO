@@ -12,6 +12,7 @@ typedef enum{
     TOKEN_SEMICOLON,  // ;
     TOKEN_LPAREN,     // (
     TOKEN_RPAREN,     // )
+    TOKEN_AMPERSAND,  // &
     TOKEN_EOF,        // end
     TOKEN_ERROR       // error
 } TokenType;
