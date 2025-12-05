@@ -312,7 +312,13 @@ void run_subshell(char *token, char *lwd){
 }
 
 void child(char *args[], int argsc){
-    execvp(args[0], args);
+    if (argsc > 1){
+        glob_t globbuf;
+        glob(args[1], 0, NULL, &globbuf);
+        execvp(args[0], globbuf.gl_pathv);
+    }else{
+        execvp(args[0], args);
+    }
     perror("execvp failed");
     exit(1);
 }
