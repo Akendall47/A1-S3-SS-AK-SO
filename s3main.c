@@ -16,7 +16,8 @@ int main(int argc, char *argv[]) {
     signal(SIGTTIN, SIG_IGN);
 
     while (1) {
-        read_command_line(line, lwd);
+        //read_command_line(line, lwd);
+        read_command_line(line, sizeof(line));
         process_input(line, lwd); 
     }
     return 0;

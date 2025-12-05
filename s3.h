@@ -2,6 +2,7 @@
 #define _S3_H_
 
 #include "lexer_fsm.h"
+#include "terminal_control.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +14,7 @@
 #include <sys/wait.h>
 #include <ctype.h>
 #include <glob.h>
+#include <termios.h>
 
 
 
@@ -41,7 +43,8 @@ static inline void reap(pid_t pid)
 void init_lwd(char lwd[]);
 int is_cd(char line[]);
 void run_cd(char *args[], int argsc, char lwd[]);
-void read_command_line(char line[], char lwd[]);
+//void read_command_line(char line[], char lwd[]);
+void read_command_line(char line[], size_t length);
 void construct_shell_prompt(char shell_prompt[]);
 
 //takes a bg ptr now

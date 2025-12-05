@@ -24,17 +24,17 @@ void init_lwd(char lwd[]){
    }
 }
 
-void read_command_line(char line[], char lwd[]){
-    char shell_prompt[MAX_PROMPT_LEN];
-    construct_shell_prompt(shell_prompt);
-    printf("%s", shell_prompt);
+// void read_command_line(char line[], char lwd[]){
+//     char shell_prompt[MAX_PROMPT_LEN];
+//     construct_shell_prompt(shell_prompt);
+//     printf("%s", shell_prompt);
 
-    if (fgets(line, MAX_LINE, stdin) == NULL) {
-        printf("\n");
-        exit(0); 
-    }
-    line[strcspn(line, "\n")] = '\0';
-}
+//     if (fgets(line, MAX_LINE, stdin) == NULL) {
+//         printf("\n");
+//         exit(0); 
+//     }
+//     line[strcspn(line, "\n")] = '\0';
+// }
 
 void trim_whitespace(char line[]){
     char *start = line;
@@ -55,6 +55,13 @@ void trim_whitespace(char line[]){
     }
 }
 
+void globbing(char *args[], int argsc){
+    if (argsc > 1){
+        glob_t globbuf;
+        glob(args[1], 0, NULL, &globbuf);
+        execvp(args[0], globbuf.gl_pathv);
+    }
+}
 
 void parse_command(char line[],  char *args[], int *argsc, int *is_bg){
     Token *tokens =  NULL;
@@ -312,13 +319,8 @@ void run_subshell(char *token, char *lwd){
 }
 
 void child(char *args[], int argsc){
-    if (argsc > 1){
-        glob_t globbuf;
-        glob(args[1], 0, NULL, &globbuf);
-        execvp(args[0], globbuf.gl_pathv);
-    }else{
-        execvp(args[0], args);
-    }
+    globbing(args, argsc);
+    execvp(args[0], args);
     perror("execvp failed");
     exit(1);
 }
@@ -336,6 +338,7 @@ void child_with_output_redirected(char *args[], int argsc, char *output_file, in
     }
     close(fd);
     
+    globbing(args, argsc);
     execvp(args[0], args);
     perror("execvp failed");
     exit(1);
@@ -352,6 +355,7 @@ void child_with_input_redirected(char *args[], int argsc, char *input_file){
     }
     close(fd); 
 
+    globbing(args, argsc);
     execvp(args[0], args);
     perror("execvp failed");
     exit(1);
@@ -569,4 +573,89 @@ void process_input(char line[], char *lwd){
             start = &line[i+1];
         }
     }
+}
+
+void read_command_line(char line[], size_t length){
+    char shell_prompt[MAX_PROMPT_LEN];
+    construct_shell_prompt(shell_prompt);
+    printf("%s", shell_prompt);
+    fflush(stdout);
+    enable_raw_mode();
+
+    size_t pos = 0;
+    size_t cursor = 0;
+
+    while (1) {
+        char c;
+        if (read(STDIN_FILENO, &c, 1) <= 0)
+            break;
+
+        if (c == '\n') {
+            line[pos] = '\0';
+            write(STDOUT_FILENO, "\n", 1);
+            break;
+        }
+
+        else if (c == '\t') {
+            // TODO: call your tab-completion logic
+            continue;
+        }
+
+        else if (c == 127) {  // Backspace
+            if (cursor > 0) {
+                // Remove character at cursor-1
+                memmove(&line[cursor - 1], &line[cursor], pos - cursor);
+                cursor--;
+                pos--;
+
+                // Redraw line
+                printf("\r\033[K");
+                printf("%s", shell_prompt);
+                fwrite(line, 1, pos, stdout);
+
+                // Move cursor to correct position
+                move_cursor_left(pos - cursor);
+            }
+        }
+
+        else if (c == 0x1B) { // Escape sequence
+            char seq[2];
+            if (read(STDIN_FILENO, &seq, 2) == 2) {
+                if (seq[0] == '[') {
+                    if (seq[1] == 'D') {  // Left arrow
+                        if (cursor > 0) {
+                            move_cursor_left(1);
+                            cursor--;
+                        }
+                    }
+                    else if (seq[1] == 'C') { // Right arrow
+                        if (cursor < pos) {
+                            move_cursor_right(1);
+                            cursor++;
+                        }
+                    }
+                }
+            }
+        }
+
+        else {
+            if (pos < length - 1) {
+                // Insert character at cursor
+                memmove(&line[cursor + 1], &line[cursor], pos - cursor);
+                line[cursor] = c;
+                pos++;
+                cursor++;
+
+                // Redraw line
+                printf("\r\033[K");
+                printf("%s", shell_prompt);
+                fwrite(line, 1, pos, stdout);
+
+                // Move cursor to correct position
+                move_cursor_left(pos - cursor);
+            }
+        }
+    }
+
+    disable_raw_mode();
 }
