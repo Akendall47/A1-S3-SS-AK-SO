@@ -22,6 +22,7 @@
 #define MAX_LINE 1024
 #define MAX_ARGS 128
 #define MAX_PROMPT_LEN 256
+#define GREEN   "\x1b[32m"
 
 ///Enum for readable argument indices
 enum ArgIndex
