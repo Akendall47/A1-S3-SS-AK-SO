@@ -1,11 +1,12 @@
 #include "s3.h"
 #include "terminal_control.h"
 
+struct termios oldt, newt;
 History *history_head = NULL;
 History *history_tail = NULL;
 
 // Used to pass every character to the program rather than waiting until the enter key getting rid of fgets()
-void enable_raw_mode(){
+void enable_raw_mode(void){
     tcgetattr(STDIN_FILENO, &oldt);
     newt = oldt;
     newt.c_lflag &= ~(ICANON | ECHO);
@@ -15,7 +16,7 @@ void enable_raw_mode(){
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 }
 
-void disable_raw_mode(){
+void disable_raw_mode(void){
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
 }
 
@@ -36,8 +37,11 @@ void move_cursor_right(int n){
 // Used for giving colour output for ls command like standard terminal
 void add_ls_colour(char *args[], int argsc){
     if (args[0] && strcmp(args[0], "ls") == 0) {
-
-        char **new_args = malloc(sizeof(argsc)+2);
+        char **new_args = malloc(sizeof(char*) * (argsc + 2));
+        if (!new_args) {
+            perror("malloc");
+            exit(1);
+        }
 
         for (int i = 0; i < argsc; i++)
             new_args[i] = args[i];
@@ -48,10 +52,10 @@ void add_ls_colour(char *args[], int argsc){
 
         execvp("ls", new_args);
         perror("execvp");
+        free(new_args);
         exit(1);
     }
 }
-
 
 void add_history(char *new_line) {
     if (strlen(new_line) == 0) return; // Don't add empty lines

@@ -50,6 +50,7 @@ void construct_shell_prompt(char shell_prompt[]);
 
 //takes a bg ptr now
 void parse_command(char line[], char *args[], int *argsc, int *is_bg);
+void free_args(char *args[], int argsc);
 int is_subshell(char line[]);
 void process_input(char line[], char *lwd);
 void run_subshell(char line[], char *lwd);

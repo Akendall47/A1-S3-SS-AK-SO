@@ -31,18 +31,6 @@ void init_lwd(char lwd[])
     }
 }
 
-// void read_command_line(char line[], char lwd[]){
-//     char shell_prompt[MAX_PROMPT_LEN];
-//     construct_shell_prompt(shell_prompt);
-//     printf("%s", shell_prompt);
-
-//     if (fgets(line, MAX_LINE, stdin) == NULL) {
-//         printf("\n");
-//         exit(0);
-//     }
-//     line[strcspn(line, "\n")] = '\0';
-// }
-
 void trim_whitespace(char line[])
 {
     char *start = line;
@@ -70,11 +58,51 @@ void trim_whitespace(char line[])
 
 void globbing(char *args[], int argsc)
 {
-    if (argsc > 1)
+    // Check if any argument contains glob characters
+    int has_glob = 0;
+    for (int i = 1; i < argsc; i++)
+    {
+        if (args[i] && (strchr(args[i], '*') || strchr(args[i], '?') || strchr(args[i], '[')))
+        {
+            has_glob = 1;
+            break;
+        }
+    }
+
+    if (has_glob && argsc > 1)
     {
         glob_t globbuf;
-        glob(args[1], 0, NULL, &globbuf);
-        execvp(args[0], globbuf.gl_pathv);
+        int flags = 0;
+        for (int i = 1; i < argsc; i++)
+        {
+            glob(args[i], flags, NULL, &globbuf);
+            flags = GLOB_APPEND;
+        }
+        if (globbuf.gl_pathc > 0)
+        {
+            // Build new args array with command and globbed paths
+            char **new_args = malloc(sizeof(char*) * (globbuf.gl_pathc + 2));
+            if (new_args)
+            {
+                new_args[0] = args[0];
+                for (size_t i = 0; i < globbuf.gl_pathc; i++)
+                {
+                    new_args[i + 1] = globbuf.gl_pathv[i];
+                }
+                new_args[globbuf.gl_pathc + 1] = NULL;
+                execvp(args[0], new_args);
+                free(new_args);
+            }
+        }
+        globfree(&globbuf);
+    }
+}
+
+void free_args(char *args[], int argsc)
+{
+    for (int i = 0; i < argsc; i++)
+    {
+        free(args[i]);
     }
 }
 
@@ -300,6 +328,7 @@ int split_pipeline(char *line, char *stages[], int *count)
 
 void run_cd(char *args[], int argsc, char lwd[])
 {
+    (void)argsc;
     char cwd[MAX_LINE];
     if (args[1] != NULL && strcmp(args[1], "-") == 0)
     {
@@ -697,6 +726,7 @@ void process_input(char line[], char *lwd)
                 {
                     parse_command(token, args, &argsc, &is_bg);
                     run_cd(args, argsc, lwd);
+                    free_args(args, argsc);
                 }
                 else if (strncmp(token, "jobs", 4) == 0)
                 {
@@ -714,6 +744,7 @@ void process_input(char line[], char *lwd)
                         else
                             printf("Job [%d] not found\n", jid);
                     }
+                    free_args(args, argsc);
                 }
                 else if (strncmp(token, "bg", 2) == 0)
                 {
@@ -727,6 +758,7 @@ void process_input(char line[], char *lwd)
                         else
                             printf("Job [%d] not found\n", jid);
                     }
+                    free_args(args, argsc);
                 }
                 else if (command_has_pipes(token))
                 {
@@ -754,6 +786,7 @@ void process_input(char line[], char *lwd)
                     {
                         launch_program_with_redirection(args, argsc, token, is_bg);
                     }
+                    free_args(args, argsc);
                 }
             }
             start = &line[i + 1];

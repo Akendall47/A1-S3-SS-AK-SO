@@ -3,8 +3,10 @@
 #include <signal.h>
 
 int main(int argc, char *argv[]) {
+    (void)argc;
+    (void)argv; // maybe use in future
     char line[MAX_LINE];
-    char lwd[MAX_PROMPT_LEN-6]; 
+    char lwd[MAX_PROMPT_LEN-6];
 
     init_jobs();
     init_lwd(lwd);
@@ -16,7 +18,6 @@ int main(int argc, char *argv[]) {
     signal(SIGTTIN, SIG_IGN);
 
     while (1) {
-        //read_command_line(line, lwd);
         read_command_line(line, sizeof(line));
         process_input(line, lwd); 
     }

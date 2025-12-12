@@ -79,18 +79,10 @@ static void buf_append(Lexer *lex, char c){
     }
 }
 
-static char buf_peek_last(Lexer *lex){
-    return (lex->buf_pos > 0) ? lex->token_buf[lex->buf_pos - 1] : '\0';
-}
-
-// helpers for charcters 
+// helpers for charcters
 
 static char peek(Lexer *lex){
     return *lex->current;
-}
-
-static char peek_next(Lexer *lex){
-    return lex->current[1];
 }
 
 //move as long as not at end 

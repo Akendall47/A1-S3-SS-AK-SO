@@ -19,7 +19,7 @@ typedef struct {
     char cmd[1024];     // copy of cmd line
 } Job;
 
-void init_jobs();
+void init_jobs(void);
 
 //add job to table
 int add_job(pid_t pgid, JobState state, const char *cmd);
@@ -27,7 +27,7 @@ void remove_job_by_pgid(pid_t pgid);
 
 Job *find_job_by_id(int id);
 
-void print_jobs();
+void print_jobs(void);
 
 // Wait specifically for a foreground process group
 // replaces our 'reap' from before

@@ -1,9 +1,10 @@
 #ifndef _TERMINAL_H_
 #define _TERMINAL_H_
 
+#include <termios.h>
 
-// For terminal control
-static struct termios oldt, newt;
+// For terminal control (declared as extern, defined in terminal_control.c)
+extern struct termios oldt, newt;
 
 typedef struct History {
     char *line;
@@ -15,8 +16,8 @@ typedef struct History {
 extern History *history_head;
 extern History *history_tail;
 
-void enable_raw_mode();
-void disable_raw_mode();
+void enable_raw_mode(void);
+void disable_raw_mode(void);
 void move_cursor_left(int n);
 void move_cursor_right(int n);
 void add_ls_colour(char *args[], int argsc);

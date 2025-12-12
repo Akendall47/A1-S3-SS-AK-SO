@@ -10,7 +10,7 @@
 static Job job_table[MAX_JOBS];
 static int max_job_id = 0;
 
-void init_jobs(){
+void init_jobs(void){
     for (int i = 0; i < MAX_JOBS; i++){
         job_table[i].id = 0;
     }
@@ -49,7 +49,7 @@ Job *find_job_by_id(int id ){
     return NULL;
 }
 
-void print_jobs(){
+void print_jobs(void){
     for (int i = 0; i < MAX_JOBS; i++) {
         if (job_table[i].id != 0) {
             printf ("[%d] %s\t%s\n", 
