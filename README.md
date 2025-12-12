@@ -216,6 +216,7 @@ jobs.h lexer_fsm.h s3.h terminal_control.h
 ### Automated Test Suite
 with full Test coverage
 may need manual etsting for ctrlZ and ctrlz
+<img width="860" height="1078" alt="image" src="https://github.com/user-attachments/assets/26e56ff9-545d-4f53-9e25-89111ec3cd6a" />
 
 ```bash
 # Run full test suite
