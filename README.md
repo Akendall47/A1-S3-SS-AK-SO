@@ -1,5 +1,7 @@
 # S3 Shell - Software Systems Shell
 
+[GitHub](https://github.com/Akendall47/A1-S3-SS-AK-SO)
+
 **Assignment 1: Shell Implementation**
 ---
 
@@ -39,13 +41,15 @@ gcc -Wall -Wextra -g s3main.c s3.c jobs.c lexer_fsm.c terminal_control.c -o s3
 
 ## 1. Basic Commands
 
-**Status:** **Fully Implemented**
+**Status:** ✅ **Fully Implemented**
 ### Key Functions
 - `launch_program()` - Forks and launches basic commands
 - `child()` - Executes `execvp()` in child process
 - `parse_command()` - Tokenizes command line using custom FSM lexer
 
 ## 2. Commands with Redirection
+
+**Status:** ✅ **Fully Implemented**
 
 ### Key Functions
 - `launch_program_with_redirection()` - Handles commands with redirection
@@ -56,6 +60,8 @@ gcc -Wall -Wextra -g s3main.c s3.c jobs.c lexer_fsm.c terminal_control.c -o s3
 ### Supported > , >>, <
 
 ## 3. Support for cd
+
+**Status:** ✅ **Fully Implemented**
 
 ### Key Functions
 - `run_cd()` - Changes directory using `chdir()`
@@ -78,7 +84,9 @@ gcc -Wall -Wextra -g s3main.c s3.c jobs.c lexer_fsm.c terminal_control.c -o s3
 - Multi-stage pipes (`cmd1 | cmd2 | cmd3 | ...`)
 
 
-## 5. Batched Commands ';'
+## 5. Batched Commands
+
+**Status:** ✅ **Fully Implemented**
 
 ### Key Functions
 - `process_input()` - Parses and executes batched commands
@@ -225,7 +233,8 @@ may need manual etsting for ctrlZ and ctrlz
 - **jobs.h** - Job control interface
 - **lexer_fsm.c** - FSM-based lexer implementation
 - **lexer_fsm.h** - Lexer interface
+- **terminal_control.c** - Functions for terminal control
+- **terminal_control.h** - Terminal interface
 
-#
-## Known Limitations and futrue plans
-
+## Known Limitations and future plans
+- Implemented most shell functionality except from tab completition. 
